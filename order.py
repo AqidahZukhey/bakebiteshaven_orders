@@ -4,24 +4,10 @@ from PIL import Image
 import requests
 from io import BytesIO
 import random
-import gspread
-from google.oauth2.service_account import Credentials
 import string
 
-# --- Google Sheets setup ---
-scope = [
-    "https://www.googleapis.com/auth/spreadsheets",
-    "https://www.googleapis.com/auth/drive"
-]
-
-creds = Credentials.from_service_account_info(
-    st.secrets["gcp_service_account"],
-    scopes=scope
-)
-
-client = gspread.authorize(creds)
-SPREADSHEET_KEY = "18MA-Oy0nbasDc0Kr-2iUhYSpj-R4AmLHsog1N8fUMzI"  # replace with your sheet key
-sheet = client.open_by_key(SPREADSHEET_KEY).sheet1
+# --- Sheet.Best API URL ---
+SHEET_API_URL = st.secrets["https://api.sheetbest.com/sheets/f820e6ec-34c7-43eb-8ee7-b44a8f4d429f"]  # store your Sheet.Best API in Streamlit Secrets
 
 # --- Page config ---
 st.set_page_config(page_title="Bake Bites Haven", page_icon="🍪", layout="wide")
@@ -108,21 +94,36 @@ elif page == "View Cart & Submit Order":
                 order_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
                 order_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-                # Create a dictionary of quantities per dessert
-                quantities = {dessert["name"]: 0 for dessert in desserts}
+                # Prepare data dictionary
+                order_data = {
+                    "Order ID": order_id,
+                    "Timestamp": order_time,
+                    "Name": name,
+                    "WhatsApp": phone,
+                    "Address": address,
+                    "Tart Nenas Qty": 0,
+                    "Tart Chocolate Qty": 0,
+                    "Sea Salt Cookie Qty": 0,
+                    "Total Amount": total,
+                    "Remarks": remarks
+                }
+
+                # Fill quantities
                 for item in st.session_state.cart:
-                    quantities[item["name"]] = item.get("quantity",1)
+                    if item["name"] == "Tart Nenas":
+                        order_data["Tart Nenas Qty"] = item.get("quantity",1)
+                    elif item["name"] == "Tart Chocolate":
+                        order_data["Tart Chocolate Qty"] = item.get("quantity",1)
+                    elif item["name"] == "Sea Salt Cookie":
+                        order_data["Sea Salt Cookie Qty"] = item.get("quantity",1)
 
-                # Append row: Order ID, Timestamp, Name, WhatsApp, Address, Dessert Qtys, Total, Remarks
-                row = [
-                    order_id, order_time, name, phone, address,
-                    quantities["Tart Nenas"],
-                    quantities["Tart Chocolate"],
-                    quantities["Sea Salt Chocolate Chip"],
-                    total,
-                    remarks
-                ]
-                sheet.append_row(row)
+                # Send to Sheet.Best
+                import requests
+                res = requests.post(SHEET_API_URL, json=order_data)
 
-                st.success(f"🎉 Order submitted successfully! Order ID: {order_id}")
-                st.session_state.cart = []
+                if res.status_code == 200 or res.status_code == 201:
+                    st.success(f"🎉 Order submitted successfully! Order ID: {order_id}")
+                    st.session_state.cart = []
+                else:
+                    st.error("❌ Failed to submit order. Please try again.")
+                    st.write(res.status_code, res.text)
