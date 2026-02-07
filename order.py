@@ -38,8 +38,7 @@ if page == "Home & Menu":
     for i, item in enumerate(desserts):
         col = cols[i % 3]
         with col:
-            img = Image.open(BytesIO(requests.get(item["image"]).content)).resize((250,250))
-            st.image(img)
+            st.image(item["image"], width=250)
             st.subheader(item["name"])
             st.write(f"**Price:** RM {item['price']:.2f}")
             st.caption(f"Quantity: {item['unit']}")
@@ -59,24 +58,31 @@ if page == "Home & Menu":
                     st.session_state[f"qty_{i}"] += 1
 
             if st.button(f"+ Add to Cart", key=f"add_{i}"):
-                st.session_state.cart.append({
-                    "name": item["name"],
-                    "price": item["price"],
-                    "unit": item["unit"],
-                    "quantity": st.session_state[f"qty_{i}"]
-                })
+                # Check if item already in cart
+                for cart_item in st.session_state.cart:
+                    if cart_item["name"] == item["name"]:
+                        cart_item["quantity"] += st.session_state[f"qty_{i}"]
+                        break
+                else:
+                    st.session_state.cart.append({
+                        "name": item["name"],
+                        "price": item["price"],
+                        "unit": item["unit"],
+                        "quantity": st.session_state[f"qty_{i}"]
+                    })
                 st.toast(f"{st.session_state[f'qty_{i}']} x {item['name']} added!", icon="🛒")
                 st.session_state[f"qty_{i}"] = 1
 
-# --- View Cart & Submit Order ---
+# --- View Cart & Submit Order page ---
 elif page == "View Cart & Submit Order":
     st.title("🛒 Your Cart")
+    
     if not st.session_state.cart:
         st.info("Your cart is empty. Go grab your kukis raya!")
     else:
         # Display cart items with quantity control and remove option
         total = 0
-        for idx, item in enumerate(st.session_state.cart):
+        for idx, item in enumerate(st.session_state.cart.copy()):  # loop over a copy
             col1, col2, col3, col4 = st.columns([4,1,1,1])
             with col1:
                 st.write(f"✅ **{item['name']}** x {item.get('quantity',1)} — RM {item['price']*item.get('quantity',1):.2f}")
@@ -95,7 +101,7 @@ elif page == "View Cart & Submit Order":
                 if st.button("❌ Remove", key=f"remove_{idx}"):
                     st.session_state.cart.pop(idx)
                     st.experimental_rerun()
-            
+
             total += item["price"]*item.get("quantity",1)
 
         st.divider()
@@ -138,13 +144,13 @@ elif page == "View Cart & Submit Order":
                         order_data["Sea Salt Cookie Qty"] = item.get("quantity",1)
 
                 # Send to Sheet.Best
-                import requests
-                res = requests.post(SHEET_API_URL, json=order_data)
-
-                if res.status_code in [200, 201]:
-                    st.success(f"🎉 Order submitted successfully! Order ID: {order_id}")
-                    st.session_state.cart = []
-                else:
-                    st.error("❌ Failed to submit order. Please check Sheet.Best connection.")
-                    st.write(res.status_code, res.text)
-
+                try:
+                    res = requests.post(SHEET_API_URL, json=order_data, timeout=10)
+                    if res.status_code in [200, 201]:
+                        st.success(f"🎉 Order submitted successfully! Order ID: {order_id}")
+                        st.session_state.cart = []
+                    else:
+                        st.error("❌ Failed to submit order. Please check Sheet.Best connection.")
+                        st.write(res.status_code, res.text)
+                except requests.exceptions.RequestException as e:
+                    st.error(f"❌ Failed to submit order: {e}")
