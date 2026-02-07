@@ -1,10 +1,13 @@
 import streamlit as st
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import requests
 import random
 import string
 from PIL import Image
 from io import BytesIO
+
+# --- Malaysia Time (UTC+8) ---
+MYT = timezone(timedelta(hours=8))
 
 # --- Sheet.Best API URL from Secrets ---
 SHEET_API_URL = st.secrets["sheet_best"]["api_url"]
@@ -163,7 +166,7 @@ elif page == "View Cart & Submit Order":
 
                 order_data = {
                     "Order ID": order_id,
-                    "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "Timestamp": datetime.now(MYT).strftime("%A, %Y-%m-%d %H:%M:%S"),
                     "Name": name,
                     "WhatsApp": phone,
                     "Address": address,
@@ -191,6 +194,7 @@ elif page == "View Cart & Submit Order":
                         st.error("Failed to submit order.")
                 except Exception as e:
                     st.error(f"Error: {e}")
+
 
 
 
