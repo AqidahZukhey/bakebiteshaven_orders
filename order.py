@@ -166,7 +166,7 @@ elif page == "View Cart & Submit Order":
 
                 order_data = {
                     "Order ID": order_id,
-                    "Timestamp": datetime.now(MYT).strftime("%A, %Y-%m-%d %H:%M:%S"),
+                    "Timestamp": "'" + datetime.now(MYT).strftime("%A, %Y-%m-%d %H:%M:%S"),
                     "Name": name,
                     "WhatsApp": phone,
                     "Address": address,
@@ -194,6 +194,7 @@ elif page == "View Cart & Submit Order":
                         st.error("Failed to submit order.")
                 except Exception as e:
                     st.error(f"Error: {e}")
+
 
 
 
