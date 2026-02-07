@@ -92,11 +92,9 @@ elif page == "View Cart & Submit Order":
                         st.session_state.cart[idx]["quantity"] -= 1
                     else:
                         st.session_state.cart.pop(idx)
-                    st.experimental_rerun()
             with col3:
                 if st.button("➕", key=f"inc_{idx}"):
                     st.session_state.cart[idx]["quantity"] += 1
-                    st.experimental_rerun()
             with col4:
                 if st.button("❌ Remove", key=f"remove_{idx}"):
                     st.session_state.cart.pop(idx)
@@ -153,5 +151,6 @@ elif page == "View Cart & Submit Order":
                         st.write(res.status_code, res.text)
                 except requests.exceptions.RequestException as e:
                     st.error(f"❌ Failed to submit order: {e}")
+
 
 
