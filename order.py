@@ -111,7 +111,6 @@ elif page == "View Cart & Submit Order":
             with c4:
                 if st.button("❌", key=f"remove_cart_{item['id']}"):
                     remove_ids.append(item["id"])
-                    st.rerun()
 
         # 2️⃣ Remove safely (by ID, not index)
         st.session_state.cart = [
@@ -173,4 +172,5 @@ elif page == "View Cart & Submit Order":
                         st.error("Failed to submit order.")
                 except Exception as e:
                     st.error(f"Error: {e}")
+
 
