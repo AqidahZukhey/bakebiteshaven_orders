@@ -3,6 +3,8 @@ from datetime import datetime
 import requests
 import random
 import string
+from PIL import Image
+from io import BytesIO
 
 # --- Sheet.Best API URL from Secrets ---
 SHEET_API_URL = st.secrets["sheet_best"]["api_url"]
@@ -29,19 +31,32 @@ desserts = [
 ]
 
 # =========================================================
+# 🔧 IMAGE LOADER (cached & resized)
+# =========================================================
+@st.cache_data
+def load_and_resize_image(url):
+    response = requests.get(url)
+    img = Image.open(BytesIO(response.content))
+    return img.resize((250, 250))
+
+# =========================================================
 # 🏠 HOME & MENU
 # =========================================================
 
 if page == "Home & Menu":
+
     st.title("🍪 BakeBites.Haven")
     st.markdown("### Time to Fill Your Kukis Raya Basket! ✨🌙")
     st.divider()
 
     cols = st.columns(3)
+
     for i, item in enumerate(desserts):
-        with cols[i]:
-            # ✅ UPDATED: same size images
-            st.image(item["image"], use_container_width=True)
+        with cols[i % 3]:
+
+            # ✅ FIXED: same-size images
+            img = load_and_resize_image(item["image"])
+            st.image(img, width=250)
 
             st.subheader(item["name"])
             st.write(f"**Price:** RM {item['price']:.2f}")
@@ -176,6 +191,7 @@ elif page == "View Cart & Submit Order":
                         st.error("Failed to submit order.")
                 except Exception as e:
                     st.error(f"Error: {e}")
+
 
 
 
