@@ -6,8 +6,8 @@ from io import BytesIO
 import random
 import string
 
-# --- Sheet.Best API URL ---
-SHEET_API_URL = st.secrets["sheet_best"]["api_url"]  # store your Sheet.Best API in Streamlit Secrets
+# --- Sheet.Best API URL from Secrets ---
+SHEET_API_URL = st.secrets["sheet_best"]["api_url"]
 
 # --- Page config ---
 st.set_page_config(page_title="Bake Bites Haven", page_icon="🍪", layout="wide")
@@ -94,7 +94,7 @@ elif page == "View Cart & Submit Order":
                 order_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
                 order_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-                # Prepare data dictionary
+                # Prepare order dictionary
                 order_data = {
                     "Order ID": order_id,
                     "Timestamp": order_time,
@@ -108,23 +108,22 @@ elif page == "View Cart & Submit Order":
                     "Remarks": remarks
                 }
 
-                # Fill quantities
+                # Fill quantities from cart
                 for item in st.session_state.cart:
                     if item["name"] == "Tart Nenas":
                         order_data["Tart Nenas Qty"] = item.get("quantity",1)
                     elif item["name"] == "Tart Chocolate":
                         order_data["Tart Chocolate Qty"] = item.get("quantity",1)
-                    elif item["name"] == "Sea Salt Cookie":
+                    elif item["name"] == "Sea Salt Chocolate Chip":
                         order_data["Sea Salt Cookie Qty"] = item.get("quantity",1)
 
                 # Send to Sheet.Best
                 import requests
                 res = requests.post(SHEET_API_URL, json=order_data)
 
-                if res.status_code == 200 or res.status_code == 201:
+                if res.status_code in [200, 201]:
                     st.success(f"🎉 Order submitted successfully! Order ID: {order_id}")
                     st.session_state.cart = []
                 else:
-                    st.error("❌ Failed to submit order. Please try again.")
+                    st.error("❌ Failed to submit order. Please check Sheet.Best connection.")
                     st.write(res.status_code, res.text)
-
