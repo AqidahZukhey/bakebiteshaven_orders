@@ -31,6 +31,7 @@ desserts = [
 # =========================================================
 # 🏠 HOME & MENU
 # =========================================================
+
 if page == "Home & Menu":
     st.title("🍪 BakeBites.Haven")
     st.markdown("### Time to Fill Your Kukis Raya Basket! ✨🌙")
@@ -39,7 +40,9 @@ if page == "Home & Menu":
     cols = st.columns(3)
     for i, item in enumerate(desserts):
         with cols[i]:
-            st.image(item["image"], width=250)
+            # ✅ UPDATED: same size images
+            st.image(item["image"], use_container_width=True)
+
             st.subheader(item["name"])
             st.write(f"**Price:** RM {item['price']:.2f}")
             st.caption(f"Quantity: {item['unit']}")
@@ -73,6 +76,7 @@ if page == "Home & Menu":
 
                 st.toast(f"{st.session_state[qty_key]} x {item['name']} added!", icon="🛒")
                 st.session_state[qty_key] = 1
+
 
 # =========================================================
 # 🛒 CART & SUBMIT ORDER
@@ -172,5 +176,6 @@ elif page == "View Cart & Submit Order":
                         st.error("Failed to submit order.")
                 except Exception as e:
                     st.error(f"Error: {e}")
+
 
 
