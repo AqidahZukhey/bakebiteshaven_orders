@@ -8,72 +8,43 @@ import gspread
 from google.oauth2.service_account import Credentials
 import string
 
-# -------------------------
-# --- GOOGLE SHEET SETUP ---
-# -------------------------
+# --- Google Sheets setup ---
 scope = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive"
 ]
 
-# Load credentials from Streamlit secrets
 creds = Credentials.from_service_account_info(
     st.secrets["gcp_service_account"],
     scopes=scope
 )
 
 client = gspread.authorize(creds)
-# Use sheet key instead of name
-SPREADSHEET_KEY = "1LQGrLw60BCkp743U7FhFousqtaZJg2pNwqv31j6VGkQ"  # Replace with your actual key
+SPREADSHEET_KEY = "18MA-Oy0nbasDc0Kr-2iUhYSpj-R4AmLHsog1N8fUMzI"  # replace with your sheet key
 sheet = client.open_by_key(SPREADSHEET_KEY).sheet1
 
-# -------------------------
-# --- PAGE CONFIGURATION ---
-# -------------------------
+# --- Page config ---
 st.set_page_config(page_title="Bake Bites Haven", page_icon="🍪", layout="wide")
 
-# -------------------------
-# --- SESSION STATE ---
-# -------------------------
+# --- Session state ---
 if 'cart' not in st.session_state:
     st.session_state.cart = []
 
-# -------------------------
-# --- SIDEBAR NAVIGATION ---
-# -------------------------
+# --- Sidebar navigation ---
 st.sidebar.title("🍪 BakeBites.Haven")
 page = st.sidebar.radio("Go to", ["Home & Menu", "View Cart & Submit Order"])
 
-# -------------------------
-# --- DESSERT DATA ---
-# -------------------------
+# --- Dessert data ---
 desserts = [
-    {
-        "name": "Tart Nenas", 
-        "price": 35.00, 
-        "unit": "40 pieces +-", 
-        "image": "https://raw.githubusercontent.com/AqidahZukhey/bakebiteshaven-images/main/tart_nenas.jpg"
-    },
-    {
-        "name": "Tart Chocolate", 
-        "price": 35.00, 
-        "unit": "40 pieces +-", 
-        "image": "https://raw.githubusercontent.com/AqidahZukhey/bakebiteshaven-images/main/tart_chocolate.jpg"
-    },
-    {
-        "name": "Sea Salt Chocolate Chip", 
-        "price": 35.00, 
-        "unit": "40 pieces +-", 
-        "image": "https://raw.githubusercontent.com/AqidahZukhey/bakebiteshaven-images/main/sea_salt_cookie.jpg"
-    },
+    {"name": "Tart Nenas", "price": 35.00, "unit": "40 pieces +-", "image": "https://raw.githubusercontent.com/AqidahZukhey/bakebiteshaven-images/main/tart_nenas.jpg"},
+    {"name": "Tart Chocolate", "price": 35.00, "unit": "40 pieces +-", "image": "https://raw.githubusercontent.com/AqidahZukhey/bakebiteshaven-images/main/tart_chocolate.jpg"},
+    {"name": "Sea Salt Chocolate Chip", "price": 35.00, "unit": "40 pieces +-", "image": "https://raw.githubusercontent.com/AqidahZukhey/bakebiteshaven-images/main/sea_salt_cookie.jpg"},
 ]
 
-# -------------------------
-# --- PAGE 1: HOME & MENU ---
-# -------------------------
+# --- Home & Menu page ---
 if page == "Home & Menu":
-    headlines = ["Time to Fill Your Kukis Raya Basket! ✨🌙"]
     st.title("🍪 BakeBites.Haven")
+    headlines = ["Time to Fill Your Kukis Raya Basket! ✨🌙"]
     st.markdown(f"### {random.choice(headlines)}")
     st.divider()
 
@@ -81,16 +52,12 @@ if page == "Home & Menu":
     for i, item in enumerate(desserts):
         col = cols[i % 3]
         with col:
-            response = requests.get(item["image"])
-            img = Image.open(BytesIO(response.content))
-            img = img.resize((250, 250))
+            img = Image.open(BytesIO(requests.get(item["image"]).content)).resize((250,250))
             st.image(img)
-
             st.subheader(item["name"])
             st.write(f"**Price:** RM {item['price']:.2f}")
             st.caption(f"Quantity: {item['unit']}")
 
-            # Quantity
             if f"qty_{i}" not in st.session_state:
                 st.session_state[f"qty_{i}"] = 1
 
@@ -105,8 +72,6 @@ if page == "Home & Menu":
                 if st.button("➕", key=f"plus_{i}"):
                     st.session_state[f"qty_{i}"] += 1
 
-            # Add to cart
-            st.write("")
             if st.button(f"+ Add to Cart", key=f"add_{i}"):
                 st.session_state.cart.append({
                     "name": item["name"],
@@ -114,22 +79,19 @@ if page == "Home & Menu":
                     "unit": item["unit"],
                     "quantity": st.session_state[f"qty_{i}"]
                 })
-                st.toast(f"{st.session_state[f'qty_{i}']} x {item['name']} added to cart!", icon="🛒")
+                st.toast(f"{st.session_state[f'qty_{i}']} x {item['name']} added!", icon="🛒")
                 st.session_state[f"qty_{i}"] = 1
 
-# -------------------------
-# --- PAGE 2: VIEW CART & SUBMIT ORDER ---
-# -------------------------
+# --- View Cart & Submit Order ---
 elif page == "View Cart & Submit Order":
     st.title("🛒 Your Cart")
-    
     if not st.session_state.cart:
         st.info("Your cart is empty. Go grab your kukis raya!")
     else:
-        total = sum(item["price"] * item.get("quantity", 1) for item in st.session_state.cart)
+        total = sum(item["price"]*item.get("quantity",1) for item in st.session_state.cart)
         for item in st.session_state.cart:
-            st.write(f"✅ **{item['name']}** x {item.get('quantity',1)} — RM {item['price'] * item.get('quantity',1):.2f}")
-        
+            st.write(f"✅ **{item['name']}** x {item.get('quantity',1)} — RM {item['price']*item.get('quantity',1):.2f}")
+
         st.divider()
         st.subheader(f"Total Amount: RM {total:.2f}")
 
@@ -143,27 +105,24 @@ elif page == "View Cart & Submit Order":
             if not name or not phone or not address:
                 st.error("Please fill in all required fields.")
             else:
-                # Generate Order ID
                 order_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
                 order_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-                # Combine items into a single string
-                items_summary = ""
+                # Create a dictionary of quantities per dessert
+                quantities = {dessert["name"]: 0 for dessert in desserts}
                 for item in st.session_state.cart:
-                    items_summary += f"{item.get('quantity',1)} x {item['name']} ({item['unit']}) @ RM {item['price']:.2f}\n"
+                    quantities[item["name"]] = item.get("quantity",1)
 
-                # Append one row to Google Sheet
-                sheet.append_row([
-                    order_id,
-                    order_time,
-                    name,
-                    phone,
-                    address,
-                    items_summary.strip(),
+                # Append row: Order ID, Timestamp, Name, WhatsApp, Address, Dessert Qtys, Total, Remarks
+                row = [
+                    order_id, order_time, name, phone, address,
+                    quantities["Tart Nenas"],
+                    quantities["Tart Chocolate"],
+                    quantities["Sea Salt Chocolate Chip"],
                     total,
                     remarks
-                ])
+                ]
+                sheet.append_row(row)
 
-                st.success(f"🎉 Order submitted successfully! Your Order ID: {order_id}")
-
+                st.success(f"🎉 Order submitted successfully! Order ID: {order_id}")
                 st.session_state.cart = []
