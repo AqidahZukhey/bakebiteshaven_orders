@@ -74,9 +74,29 @@ elif page == "View Cart & Submit Order":
     if not st.session_state.cart:
         st.info("Your cart is empty. Go grab your kukis raya!")
     else:
-        total = sum(item["price"]*item.get("quantity",1) for item in st.session_state.cart)
-        for item in st.session_state.cart:
-            st.write(f"✅ **{item['name']}** x {item.get('quantity',1)} — RM {item['price']*item.get('quantity',1):.2f}")
+        # Display cart items with quantity control and remove option
+        total = 0
+        for idx, item in enumerate(st.session_state.cart):
+            col1, col2, col3, col4 = st.columns([4,1,1,1])
+            with col1:
+                st.write(f"✅ **{item['name']}** x {item.get('quantity',1)} — RM {item['price']*item.get('quantity',1):.2f}")
+            with col2:
+                if st.button("➖", key=f"dec_{idx}"):
+                    if item["quantity"] > 1:
+                        st.session_state.cart[idx]["quantity"] -= 1
+                    else:
+                        st.session_state.cart.pop(idx)
+                    st.experimental_rerun()
+            with col3:
+                if st.button("➕", key=f"inc_{idx}"):
+                    st.session_state.cart[idx]["quantity"] += 1
+                    st.experimental_rerun()
+            with col4:
+                if st.button("❌ Remove", key=f"remove_{idx}"):
+                    st.session_state.cart.pop(idx)
+                    st.experimental_rerun()
+            
+            total += item["price"]*item.get("quantity",1)
 
         st.divider()
         st.subheader(f"Total Amount: RM {total:.2f}")
@@ -127,3 +147,4 @@ elif page == "View Cart & Submit Order":
                 else:
                     st.error("❌ Failed to submit order. Please check Sheet.Best connection.")
                     st.write(res.status_code, res.text)
+
