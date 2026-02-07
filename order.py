@@ -23,7 +23,9 @@ creds = Credentials.from_service_account_info(
 )
 
 client = gspread.authorize(creds)
-sheet = client.open("BakeBites Orders").sheet1  # Make sure the sheet name matches
+# Use sheet key instead of name
+SPREADSHEET_KEY = "1LQGrLw60BCkp743U7FhFousqtaZJg2pNwqv31j6VGkQ"  # Replace with your actual key
+sheet = client.open_by_key(SPREADSHEET_KEY).sheet1
 
 # -------------------------
 # --- PAGE CONFIGURATION ---
@@ -163,4 +165,5 @@ elif page == "View Cart & Submit Order":
                 ])
 
                 st.success(f"🎉 Order submitted successfully! Your Order ID: {order_id}")
+
                 st.session_state.cart = []
