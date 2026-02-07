@@ -7,7 +7,7 @@ import random
 import string
 
 # --- Sheet.Best API URL ---
-SHEET_API_URL = st.secrets["https://api.sheetbest.com/sheets/f820e6ec-34c7-43eb-8ee7-b44a8f4d429f"]  # store your Sheet.Best API in Streamlit Secrets
+SHEET_API_URL = st.secrets["sheet_best"]["api_url"]  # store your Sheet.Best API in Streamlit Secrets
 
 # --- Page config ---
 st.set_page_config(page_title="Bake Bites Haven", page_icon="🍪", layout="wide")
@@ -127,3 +127,4 @@ elif page == "View Cart & Submit Order":
                 else:
                     st.error("❌ Failed to submit order. Please try again.")
                     st.write(res.status_code, res.text)
+
