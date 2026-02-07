@@ -153,7 +153,7 @@ elif page == "View Cart & Submit Order":
         name = st.text_input("Full Name")
         phone = st.text_input("WhatsApp Number")
         address = st.text_area("Delivery Address")
-        remarks = st.text_input("Special Request")
+        remarks = st.text_input("Remarks")
 
         if st.button("Submit Order"):
             if not name or not phone or not address:
@@ -191,6 +191,7 @@ elif page == "View Cart & Submit Order":
                         st.error("Failed to submit order.")
                 except Exception as e:
                     st.error(f"Error: {e}")
+
 
 
 
