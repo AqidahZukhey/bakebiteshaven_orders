@@ -25,9 +25,9 @@ page = st.sidebar.radio("Go to", ["Home & Menu", "View Cart & Submit Order"])
 
 # --- Dessert data ---
 desserts = [
-    {"id": "nenas", "name": "Tart Nenas", "price": 32.00, "unit": "40 pieces +-",
+    {"id": "nenas", "name": "Tart Nenas", "price": 35.00, "unit": "40 pieces +-",
      "image": "https://raw.githubusercontent.com/AqidahZukhey/bakebiteshaven-images/main/tart_nenas.jpg"},
-    {"id": "choc_tart", "name": "Tart Chocolate", "price": 32.00, "unit": "40 pieces +-",
+    {"id": "choc_tart", "name": "Tart Chocolate", "price": 35.00, "unit": "40 pieces +-",
      "image": "https://raw.githubusercontent.com/AqidahZukhey/bakebiteshaven-images/main/tart_chocolate.jpg"},
     {"id": "sea_salt", "name": "Sea Salt Chocolate Chip", "price": 32.00, "unit": "40 pieces +-",
      "image": "https://raw.githubusercontent.com/AqidahZukhey/bakebiteshaven-images/main/sea_salt_cookie.jpg"},
@@ -194,6 +194,7 @@ elif page == "View Cart & Submit Order":
                         st.error("Failed to submit order.")
                 except Exception as e:
                     st.error(f"Error: {e}")
+
 
 
 
